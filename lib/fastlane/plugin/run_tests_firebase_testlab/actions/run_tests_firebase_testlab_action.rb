@@ -21,20 +21,20 @@ module Fastlane
         end
 
         UI.message("Set Google Cloud target project.")
-        Action.sh("#{Commands.config} #{params[:project_id]}")
+        sh("#{Commands.config} #{params[:project_id]}")
 
         UI.message("Authenticate with Google Cloud.")
-        Action.sh("#{Commands.auth} --key-file #{@client_secret_file}")
+        sh("#{Commands.auth} --key-file #{@client_secret_file}")
 
         UI.message("Running instrumentation tests in Firebase Test Lab...")
-        Action.sh("#{Commands.run_tests} "\
-                  "--type instrumentation "\
-                  "--app #{params[:app_apk]} "\
-                  "--test #{params[:android_test_apk]} "\
-                  "--device model=#{params[:model]},version=#{params[:version]},locale=#{params[:locale]},orientation=#{params[:orientation]} "\
-                  "--timeout #{params[:timeout]} "\
-                  "#{params[:extra_options]} "\
-                  "2>&1 | tee #{@test_console_output_file}")
+        sh("#{Commands.run_tests} "\
+           "--type instrumentation "\
+           "--app #{params[:app_apk]} "\
+           "--test #{params[:android_test_apk]} "\
+           "--device model=#{params[:model]},version=#{params[:version]},locale=#{params[:locale]},orientation=#{params[:orientation]} "\
+           "--timeout #{params[:timeout]} "\
+           "#{params[:extra_options]} "\
+           "2>&1 | tee #{@test_console_output_file}")
 
         UI.message("Create firebase directory (if not exists) to store test results.")
         FileUtils.mkdir_p(params[:output_dir])
@@ -46,11 +46,11 @@ module Fastlane
         end
 
         UI.message("Downloading instrumentation test results from Firebase Test Lab...")
-        Action.sh("#{Commands.download_results} #{params[:bucket_url]} #{params[:output_dir]}/")
+        sh("#{Commands.download_results} #{params[:bucket_url]} #{params[:output_dir]}/")
 
         if params[:delete_firebase_files]
           UI.message("Deleting files from firebase storage...")
-          Action.sh("#{Commands.delete_resuls} #{params[:bucket_url]}")
+          sh("#{Commands.delete_resuls} #{params[:bucket_url]}")
         end
       end
 
@@ -191,6 +191,12 @@ module Fastlane
       end
 
       private_class_method :scrape_bucket_url
+
+      def self.sh(command)
+        Action.sh(command, error_callback: ->(error) { UI.user_error!(error) })
+      end
+
+      private_class_method :sh
     end
   end
 end
